@@ -1,0 +1,18 @@
+{
+  "name": "musiccontext",
+  "version": "1.0.0",
+  "description": "A text annotation and study tool for lyrics and texts",
+  "main": "index.html",
+  "scripts": {
+    "start": "echo 'Static site - open index.html in browser'",
+    "build": "echo 'No build process needed for static site'",
+    "deploy": "echo 'Deploy to Render static site hosting'"
+  },
+  "keywords": ["text-annotation", "lyrics", "study-tool", "supabase"],
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+} 
