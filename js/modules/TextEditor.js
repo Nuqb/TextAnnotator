@@ -934,20 +934,22 @@ export class TextEditor {
         // Get the cleaned HTML
         let cleanedHtml = tempDiv.innerHTML;
         
-        // Clean up unwanted elements and attributes while preserving alignment
+        // Clean up unwanted elements and attributes while preserving alignment and intentional spacing
         cleanedHtml = cleanedHtml
-            // Remove empty elements
+            // Convert empty elements to br tags (these represent intentional blank lines)
             .replace(/<div><br><\/div>/g, '<br>') // Convert empty divs with br to just br
-            .replace(/<div><\/div>/g, '') // Remove completely empty divs
+            .replace(/<div><\/div>/g, '<br>') // Convert empty divs to br (intentional blank lines)
             .replace(/<p><br><\/p>/g, '<br>') // Convert empty paragraphs with br to just br
-            .replace(/<p><\/p>/g, '') // Remove completely empty paragraphs
-            .replace(/<div>\s*<\/div>/g, '') // Remove divs with only whitespace
-            .replace(/<p>\s*<\/p>/g, '') // Remove paragraphs with only whitespace
+            .replace(/<p><\/p>/g, '<br>') // Convert empty paragraphs to br (intentional blank lines)
+            .replace(/<div>\s*<\/div>/g, '<br>') // Convert divs with only whitespace to br (intentional spacing)
+            .replace(/<p>\s*<\/p>/g, '<br>') // Convert paragraphs with only whitespace to br (intentional spacing)
+            // Remove only empty styled elements that are created by alignment operations (not user content)
+            .replace(/<div\s*style="[^"]*">\s*<\/div>/g, '') // Remove empty styled divs (created by alignment, not user)
+            .replace(/<p\s*style="[^"]*">\s*<\/p>/g, '') // Remove empty styled paragraphs (created by alignment, not user)
             .replace(/<span>\s*<\/span>/g, '') // Remove empty spans
             .replace(/<span[^>]*>\s*<\/span>/g, '') // Remove empty spans with attributes
             // Clean up br tags
             .replace(/\s*<br>\s*/g, '<br>') // Clean up br tags
-            .replace(/<br>\s*<br>/g, '<br>') // Remove duplicate br tags
             .replace(/\n\s*\n/g, '\n') // Remove multiple newlines
             .replace(/\s+/g, ' ') // Replace multiple whitespace with single space
             .replace(/>\s+</g, '><') // Remove whitespace between tags
@@ -1065,6 +1067,10 @@ export class TextEditor {
     
     // Alignment methods
     applyAlignment(alignment) {
+        // Store the current selection/cursor position
+        const selection = window.getSelection();
+        const hasSelection = selection.rangeCount > 0 && !selection.isCollapsed;
+        
         let command;
         switch (alignment) {
             case 'left':
@@ -1083,7 +1089,25 @@ export class TextEditor {
                 command = 'justifyLeft';
         }
         
+        // Apply alignment command
         document.execCommand(command, false, null);
+        
+        // If there was no selection, ensure cursor stays in place and no extra content is added
+        if (!hasSelection && selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            // Clean up any empty elements that might have been created
+            const currentNode = range.startContainer;
+            if (currentNode.nodeType === Node.ELEMENT_NODE) {
+                // Remove any empty divs or paragraphs that might have been created
+                const emptyElements = currentNode.querySelectorAll('div:empty, p:empty');
+                emptyElements.forEach(el => {
+                    if (el.childNodes.length === 0) {
+                        el.remove();
+                    }
+                });
+            }
+        }
+        
         this.updateFormattingState();
     }
     
