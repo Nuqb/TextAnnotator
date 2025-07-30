@@ -12,12 +12,12 @@ Text Context is a web application designed to help students, researchers, writer
 
 ## ✨ Key Features
 
-🔍 **Smart Text Selection** - Simply highlight any text to add your annotations
-📝 **Rich Context Notes** - Add detailed explanations, interpretations, and analysis
-🌙 **Dark Mode** - Easy on the eyes for long study sessions
-📤 **Export Options** - Download your annotated texts
-👥 **User Accounts** - Keep your documents organized and private
-🎨 **Customizable** - Choose annotation styles and colors that work for you
+🔍 **Smart Text Selection** - Simply highlight any text to add your annotations <br>
+📝 **Rich Context Notes** - Add detailed explanations, interpretations, and analysis <br>
+🌙 **Dark Mode** - Easy on the eyes for long study sessions <br>
+📤 **Export Options** - Download your annotated texts <br>
+👥 **User Accounts** - Keep your documents organized and private <br>
+🎨 **Customizable** - Choose annotation styles and colors that work for you <br>
 
 ---
 
@@ -161,9 +161,5 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🤝 Support
-
-- 📧 **Questions:** Use GitHub Discussions
 
 ---
