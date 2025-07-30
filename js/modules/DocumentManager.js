@@ -9,22 +9,43 @@ export class DocumentManager {
     }
 
     async loadUserDocuments() {
-        if (!this.app.authManager.currentUser) return;
+        console.log('📋 loadUserDocuments() called');
+        
+        if (!this.app.authManager.currentUser) {
+            console.log('❌ No current user, skipping document load');
+            return;
+        }
+        
+        console.log('👤 Current user ID:', this.app.authManager.currentUser.id);
         
         try {
+            console.log('🗃️ Querying documents table...');
             const { data, error } = await supabase
                 .from('documents')
                 .select('*')
                 .eq('user_id', this.app.authManager.currentUser.id)
                 .order('updated_at', { ascending: false });
             
-            if (error) throw error;
+            console.log('📊 Documents query result:', { data, error });
+            
+            if (error) {
+                console.error('❌ Database error:', error);
+                throw error;
+            }
             
             this.documents = data || [];
+            console.log('✅ Documents loaded successfully:', this.documents.length, 'documents');
         } catch (error) {
-            console.error('Error loading documents:', error);
+            console.error('❌ Error loading documents:', error);
+            console.error('❌ Error details:', error.message, error.hint);
             DOMUtils.showMessage('Error loading your documents', 'error');
+            
+            // Don't let document loading failure break the entire login
+            this.documents = [];
+            console.log('⚠️ Set documents to empty array, continuing...');
         }
+        
+        console.log('✅ loadUserDocuments() completed');
     }
 
     renderDocumentsList() {

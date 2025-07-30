@@ -72,7 +72,10 @@ export class TextEditor {
         // Account panel events
         document.getElementById('accountBtn')?.addEventListener('click', () => this.toggleAccountPanel());
         document.getElementById('closeAccountPanel')?.addEventListener('click', () => this.closeAccountPanel());
-        document.getElementById('panelLogoutBtn')?.addEventListener('click', () => this.app.authManager.logout());
+        document.getElementById('panelLogoutBtn')?.addEventListener('click', () => {
+            console.log('🖱️ Logout button clicked!');
+            this.app.authManager.logout();
+        });
         
         // Settings panel events
         const settingsBtn = document.getElementById('settingsBtn');
@@ -82,19 +85,51 @@ export class TextEditor {
         document.getElementById('closeSettings')?.addEventListener('click', () => this.hideSettingsPanel());
         document.getElementById('saveSettings')?.addEventListener('click', () => this.saveSettings());
         
+        // Credits panel events - removed since credits are now always visible
+        
         // Dark mode
         this.darkModeToggle?.addEventListener('change', () => this.toggleDarkMode());
         
         // Form events
         document.getElementById('loginForm')?.addEventListener('submit', (e) => this.app.authManager.handleLogin(e));
-        document.getElementById('registerForm')?.addEventListener('submit', (e) => this.app.authManager.handleRegister(e));
+        document.getElementById('registerForm')?.addEventListener('submit', (e) => {
+            console.log('📝 Register form submitted!');
+            this.app.authManager.handleRegister(e);
+        });
         document.getElementById('newDocumentForm')?.addEventListener('submit', (e) => this.app.documentManager.createNewDocument(e));
+        
+        // Real-time password validation
+        document.getElementById('confirmPassword')?.addEventListener('input', () => {
+            const password = document.getElementById('registerPassword')?.value;
+            const confirmPassword = document.getElementById('confirmPassword')?.value;
+            
+            if (confirmPassword && password !== confirmPassword) {
+                this.app.authManager.showPasswordError(true);
+            } else {
+                this.app.authManager.showPasswordError(false);
+            }
+        });
+        
+        document.getElementById('registerPassword')?.addEventListener('input', () => {
+            const password = document.getElementById('registerPassword')?.value;
+            const confirmPassword = document.getElementById('confirmPassword')?.value;
+            
+            if (confirmPassword && password !== confirmPassword) {
+                this.app.authManager.showPasswordError(true);
+            } else {
+                this.app.authManager.showPasswordError(false);
+            }
+        });
         
         // Auth popup close events
         document.getElementById('closeLogin')?.addEventListener('click', () => this.app.authManager.hideLoginPopup());
         document.getElementById('closeRegister')?.addEventListener('click', () => this.app.authManager.hideRegisterPopup());
         document.getElementById('cancelLogin')?.addEventListener('click', () => this.app.authManager.hideLoginPopup());
         document.getElementById('cancelRegister')?.addEventListener('click', () => this.app.authManager.hideRegisterPopup());
+        
+        // Email verification popup events
+        document.getElementById('closeEmailVerification')?.addEventListener('click', () => this.app.authManager.hideEmailVerificationPopup());
+        document.getElementById('closeEmailVerificationBtn')?.addEventListener('click', () => this.app.authManager.hideEmailVerificationPopup());
         document.getElementById('cancelNewDocument')?.addEventListener('click', () => this.app.documentManager.hideNewDocumentPopup());
         
 
@@ -158,6 +193,10 @@ export class TextEditor {
     }
 
     showDashboard() {
+        console.log('🏠 showDashboard() called');
+        console.log('📊 Dashboard element:', this.documentDashboard);
+        console.log('📝 Editor element:', this.editorView);
+        
         this.currentView = 'dashboard';
         this.documentDashboard.style.display = 'block';
         this.editorView.style.display = 'none';
@@ -166,7 +205,9 @@ export class TextEditor {
         this.exportBtn.style.display = 'none';
         this.saveBtn.style.display = 'none';
         
+        console.log('📋 Rendering documents list...');
         this.app.documentManager.renderDocumentsList();
+        console.log('✅ Dashboard should be visible now!');
     }
 
     showEditor() {
@@ -196,13 +237,18 @@ export class TextEditor {
     }
 
     updateAuthUI() {
+        console.log('🔄 updateAuthUI() called');
+        console.log('👤 Current user:', this.app.authManager.currentUser?.email);
+        
         if (this.app.authManager.currentUser) {
+            console.log('✅ User is logged in, updating UI...');
             this.guestControls.style.display = 'none';
             this.userControls.style.display = 'flex';
             this.panelUserEmail.textContent = this.app.authManager.currentUser.email;
             this.backToDashboardBtn.style.display = 'block';
             this.documentTitle.style.display = 'block';
         } else {
+            console.log('❌ User is logged out, updating UI...');
             this.guestControls.style.display = 'flex';
             this.userControls.style.display = 'none';
             this.backToDashboardBtn.style.display = 'none';
@@ -541,10 +587,18 @@ export class TextEditor {
     }
 
     initializeDarkMode() {
-        const isDark = localStorage.getItem('darkMode') === 'true';
+        // Default to dark mode, but respect user's saved preference
+        const savedMode = localStorage.getItem('darkMode');
+        const isDark = savedMode !== null ? savedMode === 'true' : true; // Default to true if no saved preference
+        
         if (isDark) {
             document.body.classList.add('dark-mode');
             this.darkModeToggle.checked = true;
+        }
+        
+        // Save the default if no preference was saved
+        if (savedMode === null) {
+            localStorage.setItem('darkMode', 'true');
         }
     }
 
@@ -623,6 +677,8 @@ export class TextEditor {
             DOMUtils.showMessage('Settings saved!', 'success');
         }
     }
+
+    // Credits panel methods removed - credits are now always visible
 
     // Export and import methods (simplified)
     async exportData() {

@@ -56,6 +56,9 @@ out/
 # Generated environment file (created by build.sh)
 js/config/env.js
 
+# Local development environment file
+js/config/env.local.js
+
 # =================================================================
 # DEVELOPMENT & EDITOR FILES
 # =================================================================
@@ -218,3 +221,5 @@ personal/
 
 # Local configuration overrides
 config.local.* 
+
+debug.html
