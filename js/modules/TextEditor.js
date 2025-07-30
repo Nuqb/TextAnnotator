@@ -44,6 +44,15 @@ export class TextEditor {
         this.numberListBtn = document.getElementById('numberListBtn');
         this.textColorBtn = document.getElementById('textColorBtn');
         this.backgroundColorBtn = document.getElementById('backgroundColorBtn');
+        
+        // Alignment buttons
+        this.alignLeftBtn = document.getElementById('alignLeftBtn');
+        this.alignCenterBtn = document.getElementById('alignCenterBtn');
+        this.alignRightBtn = document.getElementById('alignRightBtn');
+        this.justifyBtn = document.getElementById('justifyBtn');
+        
+        // Clear formatting button
+        this.clearFormatBtn = document.getElementById('clearFormatBtn');
     }
 
     bindEvents() {
@@ -494,6 +503,15 @@ export class TextEditor {
         this.numberListBtn?.addEventListener('click', () => this.toggleList('ordered'));
         this.textColorBtn?.addEventListener('click', () => this.applyTextColor());
         this.backgroundColorBtn?.addEventListener('click', () => this.applyBackgroundColor());
+        
+        // Alignment button events
+        this.alignLeftBtn?.addEventListener('click', () => this.applyAlignment('left'));
+        this.alignCenterBtn?.addEventListener('click', () => this.applyAlignment('center'));
+        this.alignRightBtn?.addEventListener('click', () => this.applyAlignment('right'));
+        this.justifyBtn?.addEventListener('click', () => this.applyAlignment('justify'));
+        
+        // Clear formatting event
+        this.clearFormatBtn?.addEventListener('click', () => this.clearFormatting());
     }
 
     toggleFormat(command) {
@@ -534,6 +552,12 @@ export class TextEditor {
             this.strikeBtn?.classList.toggle('active', document.queryCommandState('strikeThrough'));
             this.bulletListBtn?.classList.toggle('active', document.queryCommandState('insertUnorderedList'));
             this.numberListBtn?.classList.toggle('active', document.queryCommandState('insertOrderedList'));
+            
+            // Update alignment button states
+            this.alignLeftBtn?.classList.toggle('active', document.queryCommandState('justifyLeft'));
+            this.alignCenterBtn?.classList.toggle('active', document.queryCommandState('justifyCenter'));
+            this.alignRightBtn?.classList.toggle('active', document.queryCommandState('justifyRight'));
+            this.justifyBtn?.classList.toggle('active', document.queryCommandState('justifyFull'));
         } catch (error) {
             console.log('Could not update formatting state:', error);
         }
@@ -986,5 +1010,55 @@ export class TextEditor {
                 child.remove();
             }
         });
+    }
+    
+    // Alignment methods
+    applyAlignment(alignment) {
+        let command;
+        switch (alignment) {
+            case 'left':
+                command = 'justifyLeft';
+                break;
+            case 'center':
+                command = 'justifyCenter';
+                break;
+            case 'right':
+                command = 'justifyRight';
+                break;
+            case 'justify':
+                command = 'justifyFull';
+                break;
+            default:
+                command = 'justifyLeft';
+        }
+        
+        document.execCommand(command, false, null);
+        this.updateFormattingState();
+    }
+    
+    // Clear formatting method
+    clearFormatting() {
+        // First, try to remove all formatting using removeFormat command
+        document.execCommand('removeFormat', false, null);
+        
+        // Reset alignment to left
+        document.execCommand('justifyLeft', false, null);
+        
+        // Reset font family to default
+        document.execCommand('fontName', false, 'Inter');
+        
+        // Reset text color to default
+        document.execCommand('foreColor', false, '#1e293b');
+        
+        // Remove any background color
+        document.execCommand('hiliteColor', false, 'transparent');
+        
+        // Update formatting state to reflect changes
+        this.updateFormattingState();
+        
+        // Also reset the font family dropdown to default
+        if (this.fontFamily) {
+            this.fontFamily.value = 'Inter';
+        }
     }
 } 

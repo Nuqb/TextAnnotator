@@ -222,4 +222,7 @@ personal/
 # Local configuration overrides
 config.local.* 
 
+# Standalone local development site (never deploy)
+local-site/
+
 debug.html
