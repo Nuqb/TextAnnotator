@@ -30,7 +30,6 @@ export class AnnotationManager {
                 this.app.settingsManager.highlightTextInEditor(annotation.text, annotation.id);
             });
         } catch (error) {
-            console.error('Error loading annotations:', error);
             DOMUtils.showMessage('Error loading annotations', 'error');
         }
     }
@@ -40,7 +39,6 @@ export class AnnotationManager {
         const addContextBtn = document.getElementById('addContextBtn');
         
         const selectedText = selection.toString().trim();
-        console.log('Text selection detected:', selectedText);
         
         if (!selectedText) {
             this.currentSelection = null;
@@ -52,7 +50,6 @@ export class AnnotationManager {
         }
         
         if (!this.isSelectionInEditor(selection)) {
-            console.log('Selection is outside editor');
             this.currentSelection = null;
             // Disable the button when selection is outside editor
             if (addContextBtn) {
@@ -63,7 +60,6 @@ export class AnnotationManager {
         
         // Just store the selection, don't show popup automatically
         this.currentSelection = selection;
-        console.log('Selection stored:', selectedText);
         
         // Enable the "Add Context" button if user is authenticated
         if (addContextBtn && this.app.authManager.currentUser) {

@@ -46,7 +46,7 @@ export class SettingsManager {
             try {
                 this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
             } catch (error) {
-                console.error('Error loading annotation settings:', error);
+                // Continue with default settings
             }
         }
     }
@@ -55,7 +55,7 @@ export class SettingsManager {
         try {
             localStorage.setItem('annotationSettings', JSON.stringify(this.settings));
         } catch (error) {
-            console.error('Error saving annotation settings:', error);
+            // Continue silently
         }
     }
 

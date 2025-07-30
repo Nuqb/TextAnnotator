@@ -9,43 +9,31 @@ export class DocumentManager {
     }
 
     async loadUserDocuments() {
-        console.log('📋 loadUserDocuments() called');
-        
         if (!this.app.authManager.currentUser) {
-            console.log('❌ No current user, skipping document load');
             return;
         }
         
-        console.log('👤 Current user ID:', this.app.authManager.currentUser.id);
-        
         try {
-            console.log('🗃️ Querying documents table...');
             const { data, error } = await supabase
                 .from('documents')
                 .select('*')
                 .eq('user_id', this.app.authManager.currentUser.id)
                 .order('updated_at', { ascending: false });
             
-            console.log('📊 Documents query result:', { data, error });
-            
             if (error) {
-                console.error('❌ Database error:', error);
                 throw error;
             }
             
             this.documents = data || [];
-            console.log('✅ Documents loaded successfully:', this.documents.length, 'documents');
         } catch (error) {
-            console.error('❌ Error loading documents:', error);
-            console.error('❌ Error details:', error.message, error.hint);
             DOMUtils.showMessage('Error loading your documents', 'error');
             
             // Don't let document loading failure break the entire login
             this.documents = [];
-            console.log('⚠️ Set documents to empty array, continuing...');
         }
         
-        console.log('✅ loadUserDocuments() completed');
+        // Render documents list after loading
+        this.renderDocumentsList();
     }
 
     renderDocumentsList() {
@@ -145,7 +133,6 @@ export class DocumentManager {
             // Clear form
             document.getElementById('newDocumentTitle').value = '';
         } catch (error) {
-            console.error('Error creating document:', error);
             DOMUtils.showMessage('Error creating document', 'error');
         }
     }
@@ -174,7 +161,6 @@ export class DocumentManager {
             
             DOMUtils.showMessage('Document title updated!', 'success');
         } catch (error) {
-            console.error('Error updating document title:', error);
             DOMUtils.showMessage('Error updating title', 'error');
             // Revert title
             this.app.documentTitle.value = this.currentDocument.title;
@@ -197,7 +183,7 @@ export class DocumentManager {
             this.renderDocumentsList();
             DOMUtils.showMessage('Document renamed!', 'success');
         } catch (error) {
-            console.error('Error renaming document:', error);
+
             DOMUtils.showMessage('Error renaming document', 'error');
         }
     }
@@ -228,7 +214,7 @@ export class DocumentManager {
             this.renderDocumentsList();
             DOMUtils.showMessage('Document deleted!', 'success');
         } catch (error) {
-            console.error('Error deleting document:', error);
+
             DOMUtils.showMessage('Error deleting document', 'error');
         }
     }
