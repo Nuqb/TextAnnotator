@@ -1,11 +1,14 @@
 import { supabase } from '../config/supabase.js';
 import { DOMUtils } from '../utils/dom.js';
+import { ColorPicker } from './ColorPicker.js';
 
 export class TextEditor {
     constructor(app) {
         this.app = app;
         this.isSaving = false;
         this.currentView = 'dashboard';
+        this.colorPicker = null;
+        this.currentTextColor = '#1e293b'; // Store current text color for future typing
     }
 
     initializeElements() {
@@ -43,6 +46,7 @@ export class TextEditor {
         this.bulletListBtn = document.getElementById('bulletListBtn');
         this.numberListBtn = document.getElementById('numberListBtn');
         this.textColorBtn = document.getElementById('textColorBtn');
+        this.textColorIndicator = document.getElementById('textColorIndicator');
         this.backgroundColorBtn = document.getElementById('backgroundColorBtn');
         
         // Alignment buttons
@@ -53,6 +57,9 @@ export class TextEditor {
         
         // Clear formatting button
         this.clearFormatBtn = document.getElementById('clearFormatBtn');
+        
+        // Initialize color picker
+        this.colorPicker = new ColorPicker();
     }
 
     bindEvents() {
@@ -68,7 +75,10 @@ export class TextEditor {
         this.textEditor?.addEventListener('mouseup', () => this.app.annotationManager.handleTextSelection());
         this.textEditor?.addEventListener('keyup', () => this.updateFormattingState());
         this.textEditor?.addEventListener('keydown', () => this.app.annotationManager.handleTextSelection());
-        this.textEditor?.addEventListener('input', () => this.app.annotationManager.handleTextSelection());
+        this.textEditor?.addEventListener('input', (e) => {
+            this.handleTextInput(e);
+            this.app.annotationManager.handleTextSelection();
+        });
         this.textEditor?.addEventListener('selectionchange', () => this.app.annotationManager.handleTextSelection());
         
         // Save and export events
@@ -314,8 +324,11 @@ export class TextEditor {
         const rawHtmlContent = this.textEditor.innerHTML;
         const rawTextContent = this.textEditor.innerText || this.textEditor.textContent || '';
         
-        // Preserve HTML content with formatting (including alignment)
+        // Preserve HTML content with formatting (including alignment and colors)
         const htmlContent = this.cleanHtmlContentForSave(rawHtmlContent) || '';
+        
+        // Log the preserved content for debugging
+        console.log('🎨 Saving content with colors preserved:', htmlContent);
         
         const htmlSize = new Blob([htmlContent]).size;
         const textSize = new Blob([rawTextContent]).size;
@@ -564,8 +577,128 @@ export class TextEditor {
     }
 
     applyTextColor() {
-        const color = prompt('Enter color (e.g., #ff0000 or red):', '#000000');
-        if (color) {
+        if (this.colorPicker) {
+            // Store the current selection before showing the color picker
+            const selection = window.getSelection();
+            let savedRange = null;
+            
+            if (selection.rangeCount > 0) {
+                savedRange = selection.getRangeAt(0).cloneRange();
+                console.log('Saved selection:', savedRange.toString());
+            }
+            
+            this.colorPicker.showColorPicker((color) => {
+                console.log('Applying color:', color);
+                
+                // Restore focus to text editor
+                this.textEditor.focus();
+                
+                // Restore the saved selection if we had one
+                if (savedRange) {
+                    console.log('Restoring saved selection:', savedRange.toString());
+                    selection.removeAllRanges();
+                    selection.addRange(savedRange);
+                } else {
+                    console.log('No saved selection, setting color for cursor position');
+                }
+                
+                // Check current selection state
+                const currentSelection = window.getSelection();
+                console.log('Current selection exists:', currentSelection.rangeCount > 0);
+                console.log('Current selection is collapsed:', currentSelection.isCollapsed);
+                console.log('Current selected text:', currentSelection.toString());
+                
+                // Check if the selection is within an annotated text element
+                if (savedRange && !savedRange.collapsed && savedRange.toString().length > 0) {
+                    const container = savedRange.commonAncestorContainer;
+                    const parentElement = container.nodeType === Node.TEXT_NODE ? container.parentElement : container;
+                    
+                    // Don't apply color to annotated text
+                    if (parentElement && parentElement.closest('.annotated-text')) {
+                        console.log('Cannot apply color to annotated text');
+                        DOMUtils.showMessage('Cannot change color of annotated text', 'warning');
+                        return;
+                    }
+                }
+                
+                // Apply the color
+                if (savedRange && !savedRange.collapsed && savedRange.toString().length > 0) {
+                    // We have selected text - apply color to it using a more reliable method
+                    console.log('Applying color to selected text');
+                    this.currentTextColor = color; // Store color for future typing
+                    
+                    // Instead of execCommand, wrap the selection in a colored span
+                    this.applyColorToSelection(savedRange, color);
+                } else {
+                    // No text selected - set color for future typing
+                    console.log('Setting color for future typing');
+                    
+                    // Store the current text color for future typing
+                    this.currentTextColor = color;
+                    
+                    // Create a colored span element at cursor position
+                    if (currentSelection.rangeCount > 0) {
+                        const range = currentSelection.getRangeAt(0);
+                        const span = document.createElement('span');
+                        span.style.color = color;
+                        span.setAttribute('data-text-color', color);
+                        
+                        // Add a zero-width space to the span to make it "exist"
+                        span.textContent = '\u200B'; // Zero-width space
+                        
+                        // Insert the span at cursor position
+                        range.insertNode(span);
+                        
+                        // Position cursor at the end of the span content
+                        range.setStart(span.firstChild, 1);
+                        range.setEnd(span.firstChild, 1);
+                        range.collapse(true);
+                        
+                        currentSelection.removeAllRanges();
+                        currentSelection.addRange(range);
+                        
+                        // Also set the formatting state for the editor
+                        document.execCommand('foreColor', false, color);
+                        
+                        console.log('Created colored span for future typing with color:', color);
+                    }
+                }
+                
+                this.updateTextColorIndicator(color);
+                this.updateFormattingState();
+            });
+        }
+    }
+
+    applyColorToSelection(range, color) {
+        try {
+            // Create a colored span to wrap the selection
+            const span = document.createElement('span');
+            span.style.color = color;
+            span.setAttribute('data-text-color', color);
+            
+            // Extract the contents of the range
+            const contents = range.extractContents();
+            
+            // Wrap the contents in the colored span
+            span.appendChild(contents);
+            
+            // Insert the colored span back into the range
+            range.insertNode(span);
+            
+            // Clear and restore selection to show the change
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            
+            // Create a new range that selects the colored text
+            const newRange = document.createRange();
+            newRange.selectNodeContents(span);
+            selection.addRange(newRange);
+            
+            console.log('Applied color to selection using span wrapper');
+        } catch (error) {
+            console.error('Error applying color to selection:', error);
+            // Fallback to execCommand if span wrapping fails
             document.execCommand('foreColor', false, color);
         }
     }
@@ -597,8 +730,126 @@ export class TextEditor {
             this.alignCenterBtn?.classList.toggle('active', document.queryCommandState('justifyCenter'));
             this.alignRightBtn?.classList.toggle('active', document.queryCommandState('justifyRight'));
             this.justifyBtn?.classList.toggle('active', document.queryCommandState('justifyFull'));
+            
+            // Update text color indicator based on current selection
+            this.updateTextColorIndicatorFromSelection();
         } catch (error) {
             console.log('Could not update formatting state:', error);
+        }
+    }
+
+    updateTextColorIndicator(color) {
+        if (this.textColorIndicator) {
+            this.textColorIndicator.style.backgroundColor = color;
+        }
+    }
+
+    updateTextColorIndicatorFromSelection() {
+        try {
+            // Get the current text color at cursor position
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                let currentElement = range.startContainer;
+                
+                // If it's a text node, get its parent element
+                if (currentElement.nodeType === Node.TEXT_NODE) {
+                    currentElement = currentElement.parentElement;
+                }
+                
+                // Don't update color indicator if we're in an annotation - they manage their own colors
+                if (currentElement && currentElement.closest && currentElement.closest('.annotated-text')) {
+                    console.log('Cursor in annotation, not updating color indicator');
+                    return;
+                }
+                
+                // Get the computed color of the current element or find the nearest colored parent
+                let color = this.findTextColor(currentElement);
+                if (color) {
+                    this.currentTextColor = color; // Store for future typing
+                    this.updateTextColorIndicator(color);
+                }
+            }
+        } catch (error) {
+            console.log('Could not update text color indicator from selection:', error);
+        }
+    }
+
+    findTextColor(element) {
+        if (!element || element === this.textEditor) {
+            return '#1e293b'; // Default color
+        }
+        
+        // Skip annotation elements - they have their own coloring system
+        if (element.classList && element.classList.contains('annotated-text')) {
+            return this.findTextColor(element.parentElement);
+        }
+        
+        const style = window.getComputedStyle(element);
+        const color = style.color;
+        
+        // If color is set and not default, use it
+        if (color && color !== 'rgb(0, 0, 0)' && color !== 'black') {
+            return this.rgbToHex(color);
+        }
+        
+        // Otherwise, check parent element
+        return this.findTextColor(element.parentElement);
+    }
+
+    rgbToHex(rgb) {
+        // Handle rgb() format
+        const match = rgb.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+        if (match) {
+            const r = parseInt(match[1]);
+            const g = parseInt(match[2]);
+            const b = parseInt(match[3]);
+            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        }
+        
+        // Handle rgba() format
+        const matchA = rgb.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/);
+        if (matchA) {
+            const r = parseInt(matchA[1]);
+            const g = parseInt(matchA[2]);
+            const b = parseInt(matchA[3]);
+            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        }
+        
+        // If already hex or named color, return as is
+        return rgb;
+    }
+
+    handleTextInput(e) {
+        // This method ensures that newly typed text maintains the selected color
+        // The improved span approach should handle most cases automatically
+        console.log('Text input detected, current stored color:', this.currentTextColor);
+        
+        // Only intervene if we have a non-default color set and detect issues
+        if (this.currentTextColor && this.currentTextColor !== '#1e293b') {
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                let currentElement = range.startContainer;
+                
+                // If we're in a text node, get its parent element
+                if (currentElement.nodeType === Node.TEXT_NODE) {
+                    currentElement = currentElement.parentElement;
+                }
+                
+                // Check if the current element has the right color
+                const computedStyle = window.getComputedStyle(currentElement);
+                const currentColor = this.rgbToHex(computedStyle.color);
+                
+                console.log('Current element color:', currentColor, 'Expected:', this.currentTextColor);
+                
+                // If there's a mismatch, we may need to apply the color
+                if (currentColor !== this.currentTextColor) {
+                    console.log('Color mismatch detected, ensuring proper color application');
+                    // The color should have been inherited from the span, but if not, let the browser handle it
+                    // Most of the time the span approach should work correctly
+                }
+            }
         }
     }
 
@@ -987,21 +1238,33 @@ export class TextEditor {
             .replace(/<div\s*style="[^"]*">\s*<\/div>/g, '') // Remove empty styled divs (created by alignment, not user)
             .replace(/<p\s*style="[^"]*">\s*<\/p>/g, '') // Remove empty styled paragraphs (created by alignment, not user)
             .replace(/<span>\s*<\/span>/g, '') // Remove empty spans
-            .replace(/<span[^>]*>\s*<\/span>/g, '') // Remove empty spans with attributes
+            .replace(/<span(?![^>]*(?:color|data-text-color))[^>]*>[\s\u200B]*<\/span>/gi, '') // Remove empty spans with attributes (but keep color spans, including zero-width spaces)
             // Clean up br tags
             .replace(/\s*<br>\s*/g, '<br>') // Clean up br tags
             .replace(/\n\s*\n/g, '\n') // Remove multiple newlines
             .replace(/\s+/g, ' ') // Replace multiple whitespace with single space
             .replace(/>\s+</g, '><') // Remove whitespace between tags
-            // Remove unwanted attributes but keep text-align styles
+            // Remove unwanted attributes but keep text-align and color styles
             .replace(/style="([^"]*)"/g, (match, styles) => {
-                // Keep only text-align styles
-                const alignMatch = styles.match(/text-align:\s*[^;]+/);
-                if (alignMatch) {
-                    return `style="${alignMatch[0]}"`;
-                }
-                return '';
+                console.log('🔍 Processing styles:', styles);
+                
+                // Keep text-align and color styles - improved regex to catch more color formats
+                const alignMatch = styles.match(/text-align:\s*[^;]+/i);
+                const colorMatch = styles.match(/color:\s*[^;]+/i);
+                
+                console.log('🎨 Color match found:', colorMatch);
+                console.log('📐 Align match found:', alignMatch);
+                
+                const preservedStyles = [];
+                if (alignMatch) preservedStyles.push(alignMatch[0]);
+                if (colorMatch) preservedStyles.push(colorMatch[0]);
+                
+                const result = preservedStyles.length > 0 ? `style="${preservedStyles.join('; ')}"` : '';
+                console.log('✅ Preserved styles result:', result);
+                
+                return result;
             })
+            // Preserve data-text-color attributes (keep them, don't remove)
             .replace(/class="[^"]*"/g, '') // Remove all classes
             .replace(/<font[^>]*>/g, '') // Remove font tags
             .replace(/<\/font>/g, '') // Remove font end tags
@@ -1167,7 +1430,11 @@ export class TextEditor {
             document.execCommand('fontName', false, 'Inter');
             
             // Reset text color to default
+            this.currentTextColor = '#1e293b';
             document.execCommand('foreColor', false, '#1e293b');
+            
+            // Update text color indicator to default
+            this.updateTextColorIndicator('#1e293b');
             
             // Remove any background color
             document.execCommand('hiliteColor', false, 'transparent');

@@ -330,6 +330,18 @@ body {
     color: #000;
 }
 
+.color-indicator {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 3px;
+    border-radius: 1px;
+    background-color: currentColor;
+    transition: background-color 0.2s ease;
+}
+
 .highlight-icon {
     color: #000 !important;
 }
@@ -1826,4 +1838,334 @@ body.dark-mode {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Color Picker Popup Styles */
+.color-picker-popup, .advanced-color-picker-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    z-index: 1001;
+    min-width: 320px;
+    max-width: 400px;
+    display: none !important; /* Force hidden by default */
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* Ensure advanced color picker is specifically hidden when not active */
+.advanced-color-picker-popup:not(.active) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.color-picker-popup.active, .advanced-color-picker-popup.active {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+.color-picker-content {
+    padding: 1rem;
+}
+
+.preset-colors-section {
+    margin-bottom: 1rem;
+}
+
+.color-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.color-item {
+    width: 24px;
+    height: 24px;
+    border-radius: 3px;
+    cursor: pointer;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.color-item:hover {
+    transform: scale(1.1);
+    border-color: #6b7280;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.color-item[data-color="#000000"] { background-color: #000000; }
+.color-item[data-color="#434343"] { background-color: #434343; }
+.color-item[data-color="#666666"] { background-color: #666666; }
+.color-item[data-color="#999999"] { background-color: #999999; }
+.color-item[data-color="#b7b7b7"] { background-color: #b7b7b7; }
+.color-item[data-color="#cccccc"] { background-color: #cccccc; }
+.color-item[data-color="#d9d9d9"] { background-color: #d9d9d9; }
+.color-item[data-color="#efefef"] { background-color: #efefef; }
+.color-item[data-color="#f3f3f3"] { background-color: #f3f3f3; }
+.color-item[data-color="#ffffff"] { background-color: #ffffff; border-color: #9ca3af; }
+.color-item[data-color="#980000"] { background-color: #980000; }
+.color-item[data-color="#ff0000"] { background-color: #ff0000; }
+.color-item[data-color="#ff9900"] { background-color: #ff9900; }
+.color-item[data-color="#ffff00"] { background-color: #ffff00; }
+.color-item[data-color="#00ff00"] { background-color: #00ff00; }
+.color-item[data-color="#00ffff"] { background-color: #00ffff; }
+.color-item[data-color="#4a86e8"] { background-color: #4a86e8; }
+.color-item[data-color="#0000ff"] { background-color: #0000ff; }
+.color-item[data-color="#9900ff"] { background-color: #9900ff; }
+.color-item[data-color="#ff00ff"] { background-color: #ff00ff; }
+.color-item[data-color="#e6b8af"] { background-color: #e6b8af; }
+.color-item[data-color="#f4cccc"] { background-color: #f4cccc; }
+.color-item[data-color="#fce5cd"] { background-color: #fce5cd; }
+.color-item[data-color="#fff2cc"] { background-color: #fff2cc; }
+.color-item[data-color="#d9ead3"] { background-color: #d9ead3; }
+.color-item[data-color="#d0e0e3"] { background-color: #d0e0e3; }
+.color-item[data-color="#c9daf8"] { background-color: #c9daf8; }
+.color-item[data-color="#cfe2f3"] { background-color: #cfe2f3; }
+.color-item[data-color="#d9d2e9"] { background-color: #d9d2e9; }
+.color-item[data-color="#ead1dc"] { background-color: #ead1dc; }
+.color-item[data-color="#dd7e6b"] { background-color: #dd7e6b; }
+.color-item[data-color="#ea9999"] { background-color: #ea9999; }
+.color-item[data-color="#f9cb9c"] { background-color: #f9cb9c; }
+.color-item[data-color="#ffe599"] { background-color: #ffe599; }
+.color-item[data-color="#b6d7a8"] { background-color: #b6d7a8; }
+.color-item[data-color="#a2c4c9"] { background-color: #a2c4c9; }
+.color-item[data-color="#a4c2f4"] { background-color: #a4c2f4; }
+.color-item[data-color="#9fc5e8"] { background-color: #9fc5e8; }
+.color-item[data-color="#b4a7d6"] { background-color: #b4a7d6; }
+.color-item[data-color="#d5a6bd"] { background-color: #d5a6bd; }
+.color-item[data-color="#cc4125"] { background-color: #cc4125; }
+.color-item[data-color="#e06666"] { background-color: #e06666; }
+.color-item[data-color="#f6b26b"] { background-color: #f6b26b; }
+.color-item[data-color="#ffd966"] { background-color: #ffd966; }
+.color-item[data-color="#93c47d"] { background-color: #93c47d; }
+.color-item[data-color="#76a5af"] { background-color: #76a5af; }
+.color-item[data-color="#6d9eeb"] { background-color: #6d9eeb; }
+.color-item[data-color="#6fa8dc"] { background-color: #6fa8dc; }
+.color-item[data-color="#8e7cc3"] { background-color: #8e7cc3; }
+.color-item[data-color="#c27ba0"] { background-color: #c27ba0; }
+.color-item[data-color="#a61c00"] { background-color: #a61c00; }
+.color-item[data-color="#cc0000"] { background-color: #cc0000; }
+.color-item[data-color="#e69138"] { background-color: #e69138; }
+.color-item[data-color="#f1c232"] { background-color: #f1c232; }
+.color-item[data-color="#6aa84f"] { background-color: #6aa84f; }
+.color-item[data-color="#45818e"] { background-color: #45818e; }
+.color-item[data-color="#3c78d8"] { background-color: #3c78d8; }
+.color-item[data-color="#3d85c6"] { background-color: #3d85c6; }
+.color-item[data-color="#674ea7"] { background-color: #674ea7; }
+.color-item[data-color="#a64d79"] { background-color: #a64d79; }
+.color-item[data-color="#85200c"] { background-color: #85200c; }
+.color-item[data-color="#990000"] { background-color: #990000; }
+.color-item[data-color="#b45f06"] { background-color: #b45f06; }
+.color-item[data-color="#bf9000"] { background-color: #bf9000; }
+.color-item[data-color="#38761d"] { background-color: #38761d; }
+.color-item[data-color="#134f5c"] { background-color: #134f5c; }
+.color-item[data-color="#1155cc"] { background-color: #1155cc; }
+.color-item[data-color="#0b5394"] { background-color: #0b5394; }
+.color-item[data-color="#351c75"] { background-color: #351c75; }
+.color-item[data-color="#741b47"] { background-color: #741b47; }
+.color-item[data-color="#5b0f00"] { background-color: #5b0f00; }
+.color-item[data-color="#660000"] { background-color: #660000; }
+.color-item[data-color="#783f04"] { background-color: #783f04; }
+.color-item[data-color="#7f6000"] { background-color: #7f6000; }
+.color-item[data-color="#274e13"] { background-color: #274e13; }
+.color-item[data-color="#0c343d"] { background-color: #0c343d; }
+.color-item[data-color="#1c4587"] { background-color: #1c4587; }
+.color-item[data-color="#073763"] { background-color: #073763; }
+.color-item[data-color="#20124d"] { background-color: #20124d; }
+.color-item[data-color="#4c1130"] { background-color: #4c1130; }
+
+.custom-color-section {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 1rem;
+}
+
+.custom-color-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+    color: #374151;
+    width: 100%;
+}
+
+.custom-color-btn:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
+.custom-color-btn .plus-icon {
+    font-weight: bold;
+    color: #6366f1;
+}
+
+/* Advanced Color Picker Styles */
+.advanced-color-content {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.color-canvas-container {
+    position: relative;
+    width: 300px;
+    height: 200px;
+}
+
+.color-canvas-cursor {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border: 2px solid white;
+    border-radius: 50%;
+    pointer-events: none;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);
+    transform: translate(-50%, -50%);
+}
+
+.hue-slider-container {
+    position: relative;
+    width: 300px;
+    height: 20px;
+}
+
+.hue-slider-cursor {
+    position: absolute;
+    width: 8px;
+    height: 24px;
+    border: 2px solid white;
+    border-radius: 2px;
+    pointer-events: none;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);
+    transform: translateX(-50%);
+    top: -2px;
+}
+
+.color-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.color-preview-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.color-preview {
+    width: 60px;
+    height: 60px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #000000;
+}
+
+.eyedropper-btn {
+    padding: 0.5rem;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #6b7280;
+}
+
+.eyedropper-btn:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+    color: #374151;
+}
+
+.color-inputs {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.input-group label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.input-group input {
+    padding: 0.375rem 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    width: 100%;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Dark mode styles for color picker */
+.dark-mode .color-picker-popup,
+.dark-mode .advanced-color-picker-popup {
+    background: #1e293b;
+    border: 1px solid #374151;
+    color: #f1f5f9;
+}
+
+.dark-mode .custom-color-btn {
+    background: #374151;
+    border-color: #4b5563;
+    color: #e5e7eb;
+}
+
+.dark-mode .custom-color-btn:hover {
+    background: #475569;
+    border-color: #6b7280;
+}
+
+.dark-mode .color-preview {
+    border-color: #4b5563;
+}
+
+.dark-mode .eyedropper-btn {
+    background: #374151;
+    border-color: #4b5563;
+    color: #9ca3af;
+}
+
+.dark-mode .eyedropper-btn:hover {
+    background: #475569;
+    color: #e5e7eb;
+}
+
+.dark-mode .input-group input {
+    background: #374151;
+    border-color: #4b5563;
+    color: #e5e7eb;
+}
+
+.dark-mode .input-group input:focus {
+    border-color: #6366f1;
 } 

@@ -109,7 +109,7 @@
                     <div class="toolbar-group">
                         <button id="textColorBtn" class="format-btn color-btn" title="Text Color">
                             <span id="textColorIcon" class="color-icon" style="color: #1e293b;">A</span>
-                            <input type="color" id="textColor" class="hidden-color-picker" value="#1e293b">
+                            <div id="textColorIndicator" class="color-indicator" style="background-color: #1e293b;"></div>
                         </button>
                     </div>
                     
@@ -464,6 +464,187 @@
                 
                 <div class="settings-actions">
                     <button type="button" id="saveSettings" class="btn btn-primary">Save Settings</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Color Picker Popup -->
+        <div id="colorPickerPopup" class="color-picker-popup">
+            <div class="popup-header">
+                <span class="popup-title">Text Color</span>
+                <button id="closeColorPicker" class="close-btn">&times;</button>
+            </div>
+            <div class="popup-content">
+                <div class="color-picker-content">
+                    <!-- Preset Colors Section -->
+                    <div class="preset-colors-section">
+                        <div class="color-grid">
+                            <div class="color-item" data-color="#000000" title="Black"></div>
+                            <div class="color-item" data-color="#434343" title="Dark Gray 4"></div>
+                            <div class="color-item" data-color="#666666" title="Dark Gray 3"></div>
+                            <div class="color-item" data-color="#999999" title="Dark Gray 2"></div>
+                            <div class="color-item" data-color="#b7b7b7" title="Dark Gray 1"></div>
+                            <div class="color-item" data-color="#cccccc" title="Gray"></div>
+                            <div class="color-item" data-color="#d9d9d9" title="Light Gray 1"></div>
+                            <div class="color-item" data-color="#efefef" title="Light Gray 2"></div>
+                            <div class="color-item" data-color="#f3f3f3" title="Light Gray 3"></div>
+                            <div class="color-item" data-color="#ffffff" title="White"></div>
+                        </div>
+                        <div class="color-grid">
+                            <div class="color-item" data-color="#980000" title="Red Berry"></div>
+                            <div class="color-item" data-color="#ff0000" title="Red"></div>
+                            <div class="color-item" data-color="#ff9900" title="Orange"></div>
+                            <div class="color-item" data-color="#ffff00" title="Yellow"></div>
+                            <div class="color-item" data-color="#00ff00" title="Green"></div>
+                            <div class="color-item" data-color="#00ffff" title="Cyan"></div>
+                            <div class="color-item" data-color="#4a86e8" title="Cornflower Blue"></div>
+                            <div class="color-item" data-color="#0000ff" title="Blue"></div>
+                            <div class="color-item" data-color="#9900ff" title="Purple"></div>
+                            <div class="color-item" data-color="#ff00ff" title="Magenta"></div>
+                        </div>
+                        <div class="color-grid">
+                            <div class="color-item" data-color="#e6b8af" title="Light Red Berry 3"></div>
+                            <div class="color-item" data-color="#f4cccc" title="Light Red 3"></div>
+                            <div class="color-item" data-color="#fce5cd" title="Light Orange 3"></div>
+                            <div class="color-item" data-color="#fff2cc" title="Light Yellow 3"></div>
+                            <div class="color-item" data-color="#d9ead3" title="Light Green 3"></div>
+                            <div class="color-item" data-color="#d0e0e3" title="Light Cyan 3"></div>
+                            <div class="color-item" data-color="#c9daf8" title="Light Cornflower Blue 3"></div>
+                            <div class="color-item" data-color="#cfe2f3" title="Light Blue 3"></div>
+                            <div class="color-item" data-color="#d9d2e9" title="Light Purple 3"></div>
+                            <div class="color-item" data-color="#ead1dc" title="Light Magenta 3"></div>
+                        </div>
+                        <div class="color-grid">
+                            <div class="color-item" data-color="#dd7e6b" title="Light Red Berry 2"></div>
+                            <div class="color-item" data-color="#ea9999" title="Light Red 2"></div>
+                            <div class="color-item" data-color="#f9cb9c" title="Light Orange 2"></div>
+                            <div class="color-item" data-color="#ffe599" title="Light Yellow 2"></div>
+                            <div class="color-item" data-color="#b6d7a8" title="Light Green 2"></div>
+                            <div class="color-item" data-color="#a2c4c9" title="Light Cyan 2"></div>
+                            <div class="color-item" data-color="#a4c2f4" title="Light Cornflower Blue 2"></div>
+                            <div class="color-item" data-color="#9fc5e8" title="Light Blue 2"></div>
+                            <div class="color-item" data-color="#b4a7d6" title="Light Purple 2"></div>
+                            <div class="color-item" data-color="#d5a6bd" title="Light Magenta 2"></div>
+                        </div>
+                        <div class="color-grid">
+                            <div class="color-item" data-color="#cc4125" title="Light Red Berry 1"></div>
+                            <div class="color-item" data-color="#e06666" title="Light Red 1"></div>
+                            <div class="color-item" data-color="#f6b26b" title="Light Orange 1"></div>
+                            <div class="color-item" data-color="#ffd966" title="Light Yellow 1"></div>
+                            <div class="color-item" data-color="#93c47d" title="Light Green 1"></div>
+                            <div class="color-item" data-color="#76a5af" title="Light Cyan 1"></div>
+                            <div class="color-item" data-color="#6d9eeb" title="Light Cornflower Blue 1"></div>
+                            <div class="color-item" data-color="#6fa8dc" title="Light Blue 1"></div>
+                            <div class="color-item" data-color="#8e7cc3" title="Light Purple 1"></div>
+                            <div class="color-item" data-color="#c27ba0" title="Light Magenta 1"></div>
+                        </div>
+                        <div class="color-grid">
+                            <div class="color-item" data-color="#a61c00" title="Dark Red Berry 1"></div>
+                            <div class="color-item" data-color="#cc0000" title="Dark Red 1"></div>
+                            <div class="color-item" data-color="#e69138" title="Dark Orange 1"></div>
+                            <div class="color-item" data-color="#f1c232" title="Dark Yellow 1"></div>
+                            <div class="color-item" data-color="#6aa84f" title="Dark Green 1"></div>
+                            <div class="color-item" data-color="#45818e" title="Dark Cyan 1"></div>
+                            <div class="color-item" data-color="#3c78d8" title="Dark Cornflower Blue 1"></div>
+                            <div class="color-item" data-color="#3d85c6" title="Dark Blue 1"></div>
+                            <div class="color-item" data-color="#674ea7" title="Dark Purple 1"></div>
+                            <div class="color-item" data-color="#a64d79" title="Dark Magenta 1"></div>
+                        </div>
+                        <div class="color-grid">
+                            <div class="color-item" data-color="#85200c" title="Dark Red Berry 2"></div>
+                            <div class="color-item" data-color="#990000" title="Dark Red 2"></div>
+                            <div class="color-item" data-color="#b45f06" title="Dark Orange 2"></div>
+                            <div class="color-item" data-color="#bf9000" title="Dark Yellow 2"></div>
+                            <div class="color-item" data-color="#38761d" title="Dark Green 2"></div>
+                            <div class="color-item" data-color="#134f5c" title="Dark Cyan 2"></div>
+                            <div class="color-item" data-color="#1155cc" title="Dark Cornflower Blue 2"></div>
+                            <div class="color-item" data-color="#0b5394" title="Dark Blue 2"></div>
+                            <div class="color-item" data-color="#351c75" title="Dark Purple 2"></div>
+                            <div class="color-item" data-color="#741b47" title="Dark Magenta 2"></div>
+                        </div>
+                        <div class="color-grid">
+                            <div class="color-item" data-color="#5b0f00" title="Dark Red Berry 3"></div>
+                            <div class="color-item" data-color="#660000" title="Dark Red 3"></div>
+                            <div class="color-item" data-color="#783f04" title="Dark Orange 3"></div>
+                            <div class="color-item" data-color="#7f6000" title="Dark Yellow 3"></div>
+                            <div class="color-item" data-color="#274e13" title="Dark Green 3"></div>
+                            <div class="color-item" data-color="#0c343d" title="Dark Cyan 3"></div>
+                            <div class="color-item" data-color="#1c4587" title="Dark Cornflower Blue 3"></div>
+                            <div class="color-item" data-color="#073763" title="Dark Blue 3"></div>
+                            <div class="color-item" data-color="#20124d" title="Dark Purple 3"></div>
+                            <div class="color-item" data-color="#4c1130" title="Dark Magenta 3"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Custom Color Button -->
+                    <div class="custom-color-section">
+                        <button id="customColorBtn" class="custom-color-btn">
+                            <span class="plus-icon">+</span>
+                            Custom
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Color Picker Popup -->
+        <div id="advancedColorPickerPopup" class="advanced-color-picker-popup">
+            <div class="popup-header">
+                <span class="popup-title">Custom Color</span>
+                <button id="closeAdvancedColorPicker" class="close-btn">&times;</button>
+            </div>
+            <div class="popup-content">
+                <div class="advanced-color-content">
+                    <!-- Color Canvas -->
+                    <div class="color-canvas-container">
+                        <canvas id="colorCanvas" width="300" height="200"></canvas>
+                        <div id="colorCanvasCursor" class="color-canvas-cursor"></div>
+                    </div>
+                    
+                    <!-- Hue Slider -->
+                    <div class="hue-slider-container">
+                        <canvas id="hueSlider" width="300" height="20"></canvas>
+                        <div id="hueSliderCursor" class="hue-slider-cursor"></div>
+                    </div>
+                    
+                    <!-- Color Preview and Controls -->
+                    <div class="color-controls">
+                        <div class="color-preview-container">
+                            <div id="colorPreview" class="color-preview"></div>
+                            <button id="eyedropperBtn" class="eyedropper-btn" title="Pick color from screen">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M13.33 12.67l-3.89 3.89c-.39.39-1.02.39-1.41 0l-1.06-1.06c-.39-.39-.39-1.02 0-1.41l3.89-3.89 1.41-1.41 1.06 1.06c.39.39.39 1.02 0 1.41l-1.41 1.41z"/>
+                                    <path d="M20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <!-- RGB/Hex Inputs -->
+                        <div class="color-inputs">
+                            <div class="input-group">
+                                <label>Hex</label>
+                                <input type="text" id="hexInput" value="#000000" maxlength="7">
+                            </div>
+                            <div class="input-group">
+                                <label>R</label>
+                                <input type="number" id="redInput" min="0" max="255" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label>G</label>
+                                <input type="number" id="greenInput" min="0" max="255" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label>B</label>
+                                <input type="number" id="blueInput" min="0" max="255" value="0">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="popup-actions">
+                        <button id="cancelAdvancedColor" class="btn btn-secondary">Cancel</button>
+                        <button id="applyAdvancedColor" class="btn btn-primary">OK</button>
+                    </div>
                 </div>
             </div>
         </div>

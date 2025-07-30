@@ -99,8 +99,16 @@ export class DocumentManager {
     async loadDocumentContent() {
         if (!this.currentDocument) return;
         
-        this.app.textEditor.innerHTML = this.currentDocument.content || '';
+        const content = this.currentDocument.content || '';
+        console.log('🎨 Loading document with preserved colors:', content);
+        
+        this.app.textEditor.innerHTML = content;
         this.app.documentTitle.value = this.currentDocument.title || 'Untitled Document';
+        
+        // Update formatting state after loading to reflect any colors in the loaded content
+        if (this.app.textEditorManager) {
+            this.app.textEditorManager.updateFormattingState();
+        }
     }
 
     async createNewDocument(e) {
