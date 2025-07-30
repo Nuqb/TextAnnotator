@@ -180,14 +180,50 @@ export class SettingsManager {
         if (element._annotationHoverHandler) {
             element.removeEventListener('mouseenter', element._annotationHoverHandler);
         }
+        if (element._annotationMouseDownHandler) {
+            element.removeEventListener('mousedown', element._annotationMouseDownHandler);
+        }
+        if (element._annotationMouseUpHandler) {
+            element.removeEventListener('mouseup', element._annotationMouseUpHandler);
+        }
+        
+        // Track drag state for this element
+        let isDragging = false;
+        let dragStartTime = 0;
+        
+        // Mouse down handler to detect start of potential drag
+        element._annotationMouseDownHandler = (e) => {
+            isDragging = true;
+            dragStartTime = Date.now();
+        };
+        element.addEventListener('mousedown', element._annotationMouseDownHandler);
+        
+        // Mouse up handler to detect end of drag
+        element._annotationMouseUpHandler = (e) => {
+            // Small delay to allow for quick clicks vs drags
+            setTimeout(() => {
+                isDragging = false;
+            }, 50);
+        };
+        element.addEventListener('mouseup', element._annotationMouseUpHandler);
         
         if (this.settings.annotationTrigger === 'hover') {
             element._annotationHoverHandler = (e) => {
+                // Don't show popup if user is dragging to select text
+                if (isDragging || this.isUserSelecting()) {
+                    return;
+                }
                 this.app.annotationManager.showAnnotationContext(annotationId);
             };
             element.addEventListener('mouseenter', element._annotationHoverHandler);
         } else {
             element._annotationClickHandler = (e) => {
+                // Don't show popup if user is dragging or was recently dragging
+                const timeSinceMouseDown = Date.now() - dragStartTime;
+                if (isDragging || timeSinceMouseDown > 100 || this.isUserSelecting()) {
+                    return;
+                }
+                
                 e.preventDefault();
                 this.app.annotationManager.showAnnotationContext(annotationId);
             };
@@ -195,6 +231,12 @@ export class SettingsManager {
         }
         
         return element;
+    }
+    
+    // Helper method to detect if user is currently selecting text
+    isUserSelecting() {
+        const selection = window.getSelection();
+        return selection && selection.rangeCount > 0 && !selection.isCollapsed;
     }
 
     updateAnnotationEvents() {
