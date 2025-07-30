@@ -274,13 +274,12 @@ export class TextEditor {
         const rawHtmlContent = this.textEditor.innerHTML;
         const rawTextContent = this.textEditor.innerText || this.textEditor.textContent || '';
         
-        // SIMPLE APPROACH: Just save the text content with basic line breaks
-        const textContent = rawTextContent.trim();
-        const htmlContent = textContent.replace(/\n/g, '<br>') || '';
+        // Preserve HTML content with formatting (including alignment)
+        const htmlContent = this.cleanHtmlContentForSave(rawHtmlContent) || '';
         
         const htmlSize = new Blob([htmlContent]).size;
-        const textSize = new Blob([textContent]).size;
-        const wordCount = textContent.split(/\s+/).filter(word => word.length > 0).length;
+        const textSize = new Blob([rawTextContent]).size;
+        const wordCount = rawTextContent.split(/\s+/).filter(word => word.length > 0).length;
         
         // Simple size check - just make sure it's reasonable
         if (htmlSize > 100 * 1024) { // 100KB
@@ -350,7 +349,7 @@ export class TextEditor {
                 this.isSaving = false;
             }, 2000);
             
-            DOMUtils.showMessage(`Document saved successfully! (${textContent.length} chars, ${wordCount} words)`, 'success');
+            DOMUtils.showMessage(`Document saved successfully! (${rawTextContent.length} chars, ${wordCount} words)`, 'success');
         } catch (error) {
             // Clear the timeout since we're handling the error
             clearTimeout(timeoutId);
@@ -922,6 +921,58 @@ export class TextEditor {
             .trim(); // Remove leading/trailing whitespace
     }
 
+    cleanHtmlContentForSave(html) {
+        if (!html || html.trim() === '') return '';
+        
+        // Create a temporary div to work with the HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        
+        // Remove empty elements first
+        this.removeEmptyElements(tempDiv);
+        
+        // Get the cleaned HTML
+        let cleanedHtml = tempDiv.innerHTML;
+        
+        // Clean up unwanted elements and attributes while preserving alignment
+        cleanedHtml = cleanedHtml
+            // Remove empty elements
+            .replace(/<div><br><\/div>/g, '<br>') // Convert empty divs with br to just br
+            .replace(/<div><\/div>/g, '') // Remove completely empty divs
+            .replace(/<p><br><\/p>/g, '<br>') // Convert empty paragraphs with br to just br
+            .replace(/<p><\/p>/g, '') // Remove completely empty paragraphs
+            .replace(/<div>\s*<\/div>/g, '') // Remove divs with only whitespace
+            .replace(/<p>\s*<\/p>/g, '') // Remove paragraphs with only whitespace
+            .replace(/<span>\s*<\/span>/g, '') // Remove empty spans
+            .replace(/<span[^>]*>\s*<\/span>/g, '') // Remove empty spans with attributes
+            // Clean up br tags
+            .replace(/\s*<br>\s*/g, '<br>') // Clean up br tags
+            .replace(/<br>\s*<br>/g, '<br>') // Remove duplicate br tags
+            .replace(/\n\s*\n/g, '\n') // Remove multiple newlines
+            .replace(/\s+/g, ' ') // Replace multiple whitespace with single space
+            .replace(/>\s+</g, '><') // Remove whitespace between tags
+            // Remove unwanted attributes but keep text-align styles
+            .replace(/style="([^"]*)"/g, (match, styles) => {
+                // Keep only text-align styles
+                const alignMatch = styles.match(/text-align:\s*[^;]+/);
+                if (alignMatch) {
+                    return `style="${alignMatch[0]}"`;
+                }
+                return '';
+            })
+            .replace(/class="[^"]*"/g, '') // Remove all classes
+            .replace(/<font[^>]*>/g, '') // Remove font tags
+            .replace(/<\/font>/g, '') // Remove font end tags
+            .trim();
+        
+        // If the content is just whitespace or empty, return empty string
+        if (!cleanedHtml || cleanedHtml === '<br>' || cleanedHtml === '<div><br></div>') {
+            return '';
+        }
+        
+        return cleanedHtml;
+    }
+
     cleanHtmlContent(html) {
         if (!html || html.trim() === '') return '';
         
@@ -1038,27 +1089,132 @@ export class TextEditor {
     
     // Clear formatting method
     clearFormatting() {
-        // First, try to remove all formatting using removeFormat command
-        document.execCommand('removeFormat', false, null);
-        
-        // Reset alignment to left
-        document.execCommand('justifyLeft', false, null);
-        
-        // Reset font family to default
-        document.execCommand('fontName', false, 'Inter');
-        
-        // Reset text color to default
-        document.execCommand('foreColor', false, '#1e293b');
-        
-        // Remove any background color
-        document.execCommand('hiliteColor', false, 'transparent');
-        
-        // Update formatting state to reflect changes
-        this.updateFormattingState();
-        
-        // Also reset the font family dropdown to default
-        if (this.fontFamily) {
-            this.fontFamily.value = 'Inter';
+        try {
+            // Store annotation data before clearing
+            const annotations = this.preserveAnnotationData();
+            
+            // Use the standard removeFormat command first
+            document.execCommand('removeFormat', false, null);
+            
+            // Reset alignment to left
+            document.execCommand('justifyLeft', false, null);
+            
+            // Reset font family to default
+            document.execCommand('fontName', false, 'Inter');
+            
+            // Reset text color to default
+            document.execCommand('foreColor', false, '#1e293b');
+            
+            // Remove any background color
+            document.execCommand('hiliteColor', false, 'transparent');
+            
+            // Restore annotation styling
+            this.restoreAnnotationData(annotations);
+            
+            // Update formatting state to reflect changes
+            this.updateFormattingState();
+            
+            // Also reset the font family dropdown to default
+            if (this.fontFamily) {
+                this.fontFamily.value = 'Inter';
+            }
+        } catch (error) {
+            console.error('Error in clearFormatting:', error);
+            // Fallback to basic clear if there's an error
+            document.execCommand('removeFormat', false, null);
+            this.updateFormattingState();
         }
+    }
+    
+    // Preserve annotation data before clearing formatting
+    preserveAnnotationData() {
+        const annotations = [];
+        const annotatedElements = this.textEditor.querySelectorAll('.annotated-text');
+        
+        annotatedElements.forEach((element, index) => {
+            const annotation = {
+                id: element.dataset.annotationId,
+                text: element.textContent,
+                originalElement: element,
+                style: element.style.cssText,
+                className: element.className
+            };
+            
+            // Add a temporary marker to find this text later
+            element.setAttribute('data-temp-annotation-marker', index);
+            annotations.push(annotation);
+        });
+        
+        return annotations;
+    }
+    
+    // Restore annotation styling after clearing formatting
+    restoreAnnotationData(annotations) {
+        annotations.forEach((annotation, index) => {
+            // Find the element by the temporary marker
+            let element = this.textEditor.querySelector(`[data-temp-annotation-marker="${index}"]`);
+            
+            if (!element) {
+                // If marker was removed, try to find by text content and annotation ID
+                const allElements = this.textEditor.querySelectorAll('*');
+                for (let el of allElements) {
+                    if (el.textContent === annotation.text && 
+                        el.dataset.annotationId === annotation.id) {
+                        element = el;
+                        break;
+                    }
+                }
+            }
+            
+            if (!element) {
+                // Last resort: find any element with matching text content
+                const walker = document.createTreeWalker(
+                    this.textEditor,
+                    NodeFilter.SHOW_TEXT,
+                    null,
+                    false
+                );
+                
+                let textNode;
+                while (textNode = walker.nextNode()) {
+                    if (textNode.textContent.includes(annotation.text)) {
+                        // Wrap this text in a new annotation span
+                        const span = document.createElement('span');
+                        span.className = annotation.className;
+                        span.style.cssText = annotation.style;
+                        span.dataset.annotationId = annotation.id;
+                        
+                        const range = document.createRange();
+                        const startIndex = textNode.textContent.indexOf(annotation.text);
+                        range.setStart(textNode, startIndex);
+                        range.setEnd(textNode, startIndex + annotation.text.length);
+                        
+                        try {
+                            range.surroundContents(span);
+                            // Re-add annotation event handlers
+                            if (this.app.settingsManager) {
+                                this.app.settingsManager.addAnnotationEvent(span, annotation.id);
+                            }
+                        } catch (e) {
+                            console.warn('Could not restore annotation:', e);
+                        }
+                        break;
+                    }
+                }
+            } else {
+                // Restore the annotation properties
+                element.className = annotation.className;
+                element.style.cssText = annotation.style;
+                element.dataset.annotationId = annotation.id;
+                
+                // Remove the temporary marker
+                element.removeAttribute('data-temp-annotation-marker');
+                
+                // Re-add annotation event handlers
+                if (this.app.settingsManager) {
+                    this.app.settingsManager.addAnnotationEvent(element, annotation.id);
+                }
+            }
+        });
     }
 } 
