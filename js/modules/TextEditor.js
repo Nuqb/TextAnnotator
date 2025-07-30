@@ -193,10 +193,6 @@ export class TextEditor {
     }
 
     showDashboard() {
-        console.log('🏠 showDashboard() called');
-        console.log('📊 Dashboard element:', this.documentDashboard);
-        console.log('📝 Editor element:', this.editorView);
-        
         this.currentView = 'dashboard';
         this.documentDashboard.style.display = 'block';
         this.editorView.style.display = 'none';
@@ -205,9 +201,7 @@ export class TextEditor {
         this.exportBtn.style.display = 'none';
         this.saveBtn.style.display = 'none';
         
-        console.log('📋 Rendering documents list...');
         this.app.documentManager.renderDocumentsList();
-        console.log('✅ Dashboard should be visible now!');
     }
 
     showEditor() {
@@ -237,18 +231,13 @@ export class TextEditor {
     }
 
     updateAuthUI() {
-        console.log('🔄 updateAuthUI() called');
-        console.log('👤 Current user:', this.app.authManager.currentUser?.email);
-        
         if (this.app.authManager.currentUser) {
-            console.log('✅ User is logged in, updating UI...');
             this.guestControls.style.display = 'none';
             this.userControls.style.display = 'flex';
             this.panelUserEmail.textContent = this.app.authManager.currentUser.email;
             this.backToDashboardBtn.style.display = 'block';
             this.documentTitle.style.display = 'block';
         } else {
-            console.log('❌ User is logged out, updating UI...');
             this.guestControls.style.display = 'flex';
             this.userControls.style.display = 'none';
             this.backToDashboardBtn.style.display = 'none';
@@ -257,24 +246,17 @@ export class TextEditor {
     }
 
     async saveDocument() {
-        console.log('Manual save button clicked');
-        console.log('Current user:', this.app.authManager.currentUser);
-        console.log('Current document:', this.app.documentManager.currentDocument);
-        
         // Prevent multiple simultaneous saves
         if (this.isSaving) {
-            console.log('Save already in progress, ignoring click');
             return;
         }
         
         if (!this.app.authManager.currentUser || !this.app.documentManager.currentDocument) {
             if (!this.app.authManager.currentUser) {
                 DOMUtils.showMessage('Please log in to save your work', 'warning');
-                console.log('No user logged in');
             }
             if (!this.app.documentManager.currentDocument) {
                 DOMUtils.showMessage('No document selected', 'warning');
-                console.log('No document selected');
             }
             return;
         }
@@ -287,19 +269,12 @@ export class TextEditor {
         const textContent = rawTextContent.trim();
         const htmlContent = textContent.replace(/\n/g, '<br>') || '';
         
-        console.log('SIMPLE SAVE: Saving raw text with <br> tags only');
-        console.log('Text content:', textContent);
-        console.log('HTML to save:', htmlContent);
-        
         const htmlSize = new Blob([htmlContent]).size;
         const textSize = new Blob([textContent]).size;
         const wordCount = textContent.split(/\s+/).filter(word => word.length > 0).length;
         
-        console.log(`📝 Content to save: ${textContent.length} characters, ${wordCount} words, ${htmlSize} bytes`);
-        
         // Simple size check - just make sure it's reasonable
         if (htmlSize > 100 * 1024) { // 100KB
-            console.warn('Content is large (>100KB)');
             DOMUtils.showMessage('Document is large. Save may take a moment.', 'warning');
         }
 
@@ -311,28 +286,18 @@ export class TextEditor {
 
         // Add a timeout to prevent getting stuck forever
         const timeoutId = setTimeout(() => {
-            console.error('Save operation timed out after 15 seconds');
             this.resetSaveButton(originalText);
             DOMUtils.showMessage('Save timed out. The content may be too complex. Try refreshing the page.', 'error');
         }, 15000); // 15 second timeout (shorter)
 
         try {
-            console.log('=== STARTING SAVE OPERATION ===');
-            console.log('Document ID:', this.app.documentManager.currentDocument.id);
-            console.log('Content length:', htmlContent.length, 'characters');
-            console.log('Content preview:', htmlContent.substring(0, 100));
-            
             // First, test basic connectivity
-            console.log('Testing Supabase connectivity...');
             try {
-                const testResult = await supabase.from('documents').select('id').limit(1);
-                console.log('Connectivity test result:', testResult);
+                await supabase.from('documents').select('id').limit(1);
             } catch (testError) {
-                console.error('Connectivity test failed:', testError);
                 throw new Error(`Database connection failed: ${testError.message}`);
             }
             
-            console.log('Making Supabase call...');
             const saveStartTime = Date.now();
             
             const { data, error } = await supabase
@@ -344,24 +309,12 @@ export class TextEditor {
                 .eq('id', this.app.documentManager.currentDocument.id)
                 .select();
                 
-            const saveEndTime = Date.now();
-            console.log(`Supabase call completed in ${saveEndTime - saveStartTime}ms`);
-
             if (error) {
-                console.error('Supabase error:', error);
-                console.error('Error details:', {
-                    message: error.message,
-                    details: error.details,
-                    hint: error.hint,
-                    code: error.code
-                });
                 throw error;
             }
 
             // Clear the timeout since save succeeded
             clearTimeout(timeoutId);
-            
-            console.log('Save successful:', data);
 
             // Update the current document object with the new content
             if (data && data.length > 0) {
