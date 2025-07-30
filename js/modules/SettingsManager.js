@@ -67,13 +67,25 @@ export class SettingsManager {
         // Update existing annotation elements with new styles
         const existingAnnotations = textEditor.querySelectorAll('.annotated-text');
         existingAnnotations.forEach(element => {
+            // Preserve existing text color if it exists
+            const existingColor = element.style.color;
+            const existingDataColor = element.getAttribute('data-text-color');
+            
             // Clear all previous styling
             element.style.cssText = '';
             element.className = 'annotated-text';
             
-            // Apply new style
+            // Apply new annotation style
             const newStyle = this.getAnnotationStyle();
             element.style.cssText = newStyle + ' cursor: pointer; transition: all 0.2s;';
+            
+            // Restore text color if it existed before
+            if (existingColor && existingColor !== '') {
+                element.style.color = existingColor;
+            }
+            if (existingDataColor) {
+                element.setAttribute('data-text-color', existingDataColor);
+            }
             
             // Update event listeners
             const annotationId = element.dataset.annotationId;
@@ -119,9 +131,35 @@ export class SettingsManager {
                 annotationSpan.dataset.annotationId = annotationId;
                 annotationSpan.textContent = text;
                 
+                // Check if the text being annotated has existing color styling
+                let existingColor = '';
+                let existingDataColor = '';
+                
+                // Check if the text node is inside a colored element
+                let parentElement = textNode.parentElement;
+                while (parentElement && parentElement !== this.app.textEditor) {
+                    if (parentElement.style.color) {
+                        existingColor = parentElement.style.color;
+                        break;
+                    }
+                    if (parentElement.getAttribute('data-text-color')) {
+                        existingDataColor = parentElement.getAttribute('data-text-color');
+                        break;
+                    }
+                    parentElement = parentElement.parentElement;
+                }
+                
                 // Apply annotation style
                 const style = this.getAnnotationStyle();
                 annotationSpan.style.cssText = style + ' cursor: pointer; transition: all 0.2s;';
+                
+                // Preserve any existing text color
+                if (existingColor) {
+                    annotationSpan.style.color = existingColor;
+                }
+                if (existingDataColor) {
+                    annotationSpan.setAttribute('data-text-color', existingDataColor);
+                }
                 
                 // Add event to view annotation based on trigger setting
                 this.addAnnotationEvent(annotationSpan, annotationId);
