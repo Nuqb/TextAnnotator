@@ -218,9 +218,14 @@ export class SettingsManager {
             element.addEventListener('mouseenter', element._annotationHoverHandler);
         } else {
             element._annotationClickHandler = (e) => {
-                // Don't show popup if user is dragging or was recently dragging
+                // Don't show popup if user is selecting text
+                if (this.isUserSelecting()) {
+                    return;
+                }
+                
+                // Allow clicks, but prevent if it was a longer drag (> 200ms indicates dragging)
                 const timeSinceMouseDown = Date.now() - dragStartTime;
-                if (isDragging || timeSinceMouseDown > 100 || this.isUserSelecting()) {
+                if (timeSinceMouseDown > 200) {
                     return;
                 }
                 
