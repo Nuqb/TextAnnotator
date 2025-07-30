@@ -157,12 +157,49 @@ export class TextEditor {
         
         // Popup events
         document.getElementById('closeNewDocument')?.addEventListener('click', () => this.app.documentManager.hideNewDocumentPopup());
-        document.getElementById('addContextBtn')?.addEventListener('click', () => this.app.annotationManager.showContextPopup());
-        document.getElementById('saveContext')?.addEventListener('click', () => this.app.annotationManager.saveAnnotation());
-        document.getElementById('cancelContext')?.addEventListener('click', () => this.app.annotationManager.hideContextPopup());
-        document.getElementById('closeViewContext')?.addEventListener('click', () => this.app.annotationManager.closeAnnotationPopup());
+        document.getElementById('closePopup')?.addEventListener('click', () => {
+            if (this.app?.annotationManager) {
+                this.app.annotationManager.hideContextPopup();
+            }
+        });
+        document.getElementById('addContextBtn')?.addEventListener('click', () => {
+            if (this.app?.annotationManager) {
+                this.app.annotationManager.showContextPopup();
+            }
+        });
+        
+        document.getElementById('saveContext')?.addEventListener('click', () => {
+            try {
+                if (!this.app || !this.app.annotationManager) {
+                    console.error('AnnotationManager not initialized');
+                    DOMUtils.showMessage('Error: Annotation system not ready. Please try again.', 'error');
+                    return;
+                }
+                
+                this.app.annotationManager.saveAnnotation();
+            } catch (error) {
+                console.error('Error calling saveAnnotation:', error);
+                DOMUtils.showMessage('Error saving annotation. Please try again.', 'error');
+            }
+        });
+        
+        document.getElementById('cancelContext')?.addEventListener('click', () => {
+            if (this.app?.annotationManager) {
+                this.app.annotationManager.hideContextPopup();
+            }
+        });
+        
+        document.getElementById('closeViewContext')?.addEventListener('click', () => {
+            if (this.app?.annotationManager) {
+                this.app.annotationManager.closeAnnotationPopup();
+            }
+        });
 
-        document.getElementById('deleteContextBtn')?.addEventListener('click', () => this.app.annotationManager.deleteAnnotation());
+        document.getElementById('deleteContextBtn')?.addEventListener('click', () => {
+            if (this.app?.annotationManager) {
+                this.app.annotationManager.deleteAnnotation();
+            }
+        });
         
         // Overlay events
         document.getElementById('overlay')?.addEventListener('click', () => DOMUtils.hideAllPopups());

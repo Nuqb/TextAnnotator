@@ -116,6 +116,15 @@ export class AnnotationManager {
             textInput.focus();
         }
         
+        // Reset popup position to center before showing
+        this.resetPopupPosition(popup);
+        
+        // Setup drag functionality
+        this.setupPopupDrag(popup);
+        
+        // Setup close behavior based on settings
+        this.setupPopupCloseBehavior(popup);
+        
         DOMUtils.showPopup(popup);
     }
 
@@ -343,6 +352,7 @@ export class AnnotationManager {
         popup.style.top = '';
         popup.style.transform = 'translate(-50%, -50%)';
         popup._isDragging = false;
+        popup._justFinishedDragging = false;
     }
 
     setupPopupDrag(popup) {
@@ -417,6 +427,13 @@ export class AnnotationManager {
         popup._isDragging = false;
         popup.style.cursor = '';
         document.body.style.userSelect = '';
+        
+        // Add a small delay before allowing popup to be closed via outside click
+        // This prevents the mouse release from immediately triggering the close behavior
+        popup._justFinishedDragging = true;
+        setTimeout(() => {
+            popup._justFinishedDragging = false;
+        }, 100);
     }
 
     setupPopupCloseBehavior(popup) {
@@ -431,8 +448,8 @@ export class AnnotationManager {
         if (closeMode === 'click-outside') {
             // Add outside click listener
             popup._outsideClickHandler = (e) => {
-                // Don't close if clicking inside the popup or if dragging
-                if (popup.contains(e.target) || popup._isDragging) return;
+                // Don't close if clicking inside the popup, if currently dragging, or just finished dragging
+                if (popup.contains(e.target) || popup._isDragging || popup._justFinishedDragging) return;
                 
                 // Don't close if clicking on an annotation (which might trigger this popup)
                 if (e.target.closest('.annotated-text')) return;
