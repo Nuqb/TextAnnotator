@@ -59,6 +59,9 @@ export class TextEditor {
         // Navigation events
         this.backToDashboardBtn?.addEventListener('click', () => this.app.showDashboard());
         this.newDocumentBtn?.addEventListener('click', () => this.app.documentManager.showNewDocumentPopup());
+        
+        // Big "Create New Document" card
+        document.getElementById('newDocumentCard')?.addEventListener('click', () => this.app.documentManager.showNewDocumentPopup());
         this.titleBtn?.addEventListener('click', () => this.handleTitleClick());
         
         // Text editor events
